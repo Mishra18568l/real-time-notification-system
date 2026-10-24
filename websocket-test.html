@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Notification Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      padding: 40px;
+    }
+    .container {
+      max-width: 650px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+    }
+    .notification {
+      background: #eff6ff;
+      padding: 15px;
+      margin-top: 12px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Real-Time Notification Test</h2>
+    <p id="status">Connecting...</p>
+    <h3>Live Notifications</h3>
+    <div id="notifications"></div>
+  </div>
+
+  <script>
+    const socket = new WebSocket(
+      "ws://localhost:8080/ws?userId=user123"
+    );
+
+    socket.onopen = () => {
+      document.getElementById("status").textContent =
+        "Connected to WebSocket!";
+    };
+
+    socket.onmessage = (event) => {
+      const notification = JSON.parse(event.data);
+
+      const item = document.createElement("div");
+      item.className = "notification";
+
+      const heading = document.createElement("strong");
+      heading.textContent = notification.type || "Notification";
+
+      const message = document.createElement("p");
+      message.textContent = notification.message || "";
+
+      item.append(heading, message);
+      document.getElementById("notifications").prepend(item);
+    };
+
+    socket.onerror = () => {
+      document.getElementById("status").textContent =
+        "WebSocket connection error!";
+    };
+
+    socket.onclose = () => {
+      document.getElementById("status").textContent =
+        "WebSocket disconnected!";
+    };
+  </script>
+</body>
+</html>

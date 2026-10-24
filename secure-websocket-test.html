@@ -1,0 +1,88 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure WebSocket Test</title>
+</head>
+<body>
+    <h2>Secure WebSocket Authentication Test</h2>
+
+    <p>Username: testuser</p>
+
+    <button onclick="connect()">Connect WebSocket</button>
+    <button onclick="disconnect()">Disconnect</button>
+
+    <pre id="output"></pre>
+
+    <script>
+        let socket;
+
+        function log(message) {
+            document.getElementById("output").textContent +=
+                message + "\n";
+        }
+
+        async function connect() {
+            try {
+                const username = "testuser";
+                const password = prompt("Enter testuser password:");
+
+                const loginResponse = await fetch(
+                    "http://localhost:8080/api/auth/login",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ username, password })
+                    }
+                );
+
+                if (!loginResponse.ok) {
+                    log("Login failed: " + loginResponse.status);
+                    return;
+                }
+
+                const login = await loginResponse.json();
+
+                const ticketResponse = await fetch(
+                    "http://localhost:8080/api/ws-ticket",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Authorization": "Bearer " + login.token
+                        }
+                    }
+                );
+
+                if (!ticketResponse.ok) {
+                    log("Ticket request failed: " + ticketResponse.status);
+                    return;
+                }
+
+                const { ticket } = await ticketResponse.json();
+
+                socket = new WebSocket(
+                    "ws://localhost:8080/ws?ticket=" +
+                    encodeURIComponent(ticket)
+                );
+
+                socket.onopen = () => log("CONNECTED successfully");
+                socket.onmessage = e => log("Notification: " + e.data);
+                socket.onerror = () => log("WebSocket error");
+                socket.onclose = e => log("CLOSED: " + e.code);
+
+            } catch (error) {
+                log("Error: " + error.message);
+            }
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.close();
+            }
+        }
+    </script>
+</body>
+</html>
