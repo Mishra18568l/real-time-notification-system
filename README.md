@@ -44,5 +44,3 @@ Run a second app with `PORT=8081 mvn spring-boot:run` in another terminal. Conne
 - Add pagination, rate limiting, metrics/tracing, alerting, retention policy, consumer concurrency tuning, integration tests with Testcontainers, and TLS.
 - RabbitMQ durable queues alone are insufficient to promise end-to-end at-least-once guarantees. Durable publish confirmation, failure-safe consumer acknowledgements, and durable recovery mechanisms are necessary.
 
-## Interview explanation
-I separated event production from notification processing with RabbitMQ. Each event has a stable UUID. PostgreSQL enforces uniqueness; Redis accelerates duplicate checks and distributes real-time updates to all gateway nodes. Retry queues use increasing TTLs and terminal failures go to a dead-letter queue. Notifications remain queryable if a WebSocket client is offline. I distinguish durable storage from best-effort live delivery and can explain what must be hardened for production.
